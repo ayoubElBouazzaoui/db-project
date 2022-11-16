@@ -2,6 +2,10 @@ import scrapy
 from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors import LinkExtractor
 from db_data import get_onderneming_2, insert_query
+from urllib.parse import urlparse
+from threading import Lock
+
+from scrapy.exceptions import IgnoreRequest, NotConfigured
 import re
 def formaturl(url):
     if not re.match('(?:http|ftp|https)://', url):
@@ -11,7 +15,7 @@ class WebSpider(scrapy.Spider):
     
     name = "webspider"
    
-    DEPTH_LIMIT = 15
+    DEPTH_LIMIT = 3
     
    
      
@@ -27,7 +31,7 @@ class WebSpider(scrapy.Spider):
         for row in get_onderneming_2():
             
             yield scrapy.Request(formaturl(row[4]) ,
-                         callback = self.parse , cb_kwargs={'comp':row[1]})
+                         callback = self.parse , cb_kwargs={'comp':row[1], 'count' : 0})
 
     
         
@@ -41,21 +45,25 @@ class WebSpider(scrapy.Spider):
     
 
 
-    def parse(self, response, comp):
-        str1 = ""
-        print("///////////////////////")
-        print( response.url  )
-        print(comp)
-        text = ''.join(response.selector.xpath("//body//text()").extract() )
-        print("///////////////////////")
-        query = 'INSERT INTO dep."html_paginas"("naam","url", "text") VALUES(  %s,%s,%s ) '
-        insert_query(query, comp, response.url, text)
-        for url in LinkExtractor(allow_domains=self.allowed_domains).extract_links(response):
-            if url:
-                print(url)
-                yield    response.follow(url = url,
-                            callback = self.parse,cb_kwargs={'comp':comp})
-                
+    def parse(self, response, comp, count):
+        if count <= 3 :
+            str1 = ""
+            print("///////////////////////")
+            print( response.url  )
+            print(comp)
+            text = ''.join(response.selector.xpath("//body//text()").extract() )
+            print("///////////////////////")
+            query = 'INSERT INTO dep."html_paginas"("naam","url", "text") VALUES(  %s,%s,%s ) '
+            insert_query(query, comp, response.url, text)
+            for url in LinkExtractor(allow_domains=self.allowed_domains).extract_links(response):
+                if url:
+                    print(url)
+                    yield    response.follow(url = url,
+                                callback = self.parse,cb_kwargs={'comp':comp, 'count' : count+1})
+        
+        else: 
+            print(f"{count} DONE ON DEPTH")
+
    
     
 process = CrawlerProcess()
