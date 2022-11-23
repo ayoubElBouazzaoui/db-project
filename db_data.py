@@ -1,23 +1,37 @@
 
 import psycopg2
 
+def connect_to_db():
+
+    connection_config_dict = {
+        'host': 'vichogent.be',
+        'port': 40045,
+        'database': 'DEP',
+        'user': 'postgres',
+        'password': '',
+        'options': "-c search_path=dep"
+    }
+
+    try:
+        connection = psycopg2.connect(**connection_config_dict)
+        return connection
+
+    except (Exception, psycopg2.DatabaseError) as e:
+        print("Error while connecting to PostgreSQL", e)
+        exit()
+
 
 def insert_query(query, comp, url, text):
-    try:
-        print("connecting to db")
-        conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
+        conn = connect_to_db()
         cur = conn.cursor()
-        print("doing query")
         cur.execute(query,(str(comp), str(url), str(text)))
         conn.commit()
         cur.close()
         conn.close()
-    except (Exception) as error : 
-        print(f"postgres error : {error}")
-        print(text)
+
 
 def get_ondernemingen(fiscaal_jaar):
-    conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
+    conn = connect_to_db()
     cur = conn.cursor()
     cur.callproc('getondernemingenscrapingcodingtreewebsite', (fiscaal_jaar, ))
     result = cur.fetchall()
@@ -28,7 +42,7 @@ def get_ondernemingen(fiscaal_jaar):
 
 
 def update_scrape_log(FiscaalJaar, OndernemingID):
-    conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
+    conn = connect_to_db()
 
     cursor = conn.cursor()
     sql = """INSERT INTO "ScrapeLog" ("FiscaalJaar", "OndernemingID", "Website") VALUES (%s, %s, %s)"""
