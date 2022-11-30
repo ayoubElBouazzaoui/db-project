@@ -1,4 +1,5 @@
 import scrapy
+from scrapy.spiders import  Rule
 from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors import LinkExtractor
 from db_data import get_onderneming, insert_query
@@ -47,7 +48,7 @@ class WebSpider(scrapy.Spider):
     
         
     # include_patterns = ['']
-    exclude_patterns = ['.*\.(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)','(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)']
+    exclude_patterns = ['.*\.(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)','.*(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)']
 
    
 
@@ -61,13 +62,14 @@ class WebSpider(scrapy.Spider):
             
             print("///////////////////////")
             print( response.url  )
+            
             print(comp)
             text = ''.join(response.selector.xpath("//body//text()").extract() )
             print("///////////////////////")
         
             query = 'INSERT INTO dep."html_paginas"("naam","url", "text", "id") VALUES(  %s,%s,%s,%s ) '
             insert_query(query, comp , id, text,response.url)
-            for url in LinkExtractor(allow_domains=self.allowed_domains).extract_links(response):
+            for url in LinkExtractor(deny=self.exclude_patterns, allow_domains=self.allowed_domains).extract_links(response):
                 if url:
                     
                     yield    response.follow(url = url,
