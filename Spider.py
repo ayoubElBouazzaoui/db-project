@@ -9,12 +9,12 @@ fiscaal_jaar = 2021
 def formaturl(url):
     if not re.match('(?:http|ftp|https)://', url):
         return 'https://{}'.format(url)
-
+    return url
 
 class WebSpider(scrapy.Spider):
     name = "webspider"
 
-    DEPTH_LIMIT = 15
+    DEPTH_LIMIT = 3
 
     def __init__(self):
         self.links = []
