@@ -1,69 +1,35 @@
+import pandas as pd
+import psycopg2 
+from fill_website_field import fill_site
 
-import psycopg2
-
-def connect_to_db():
-
-    connection_config_dict = {
-        'host': 'vichogent.be',
-        'port': 40045,
-        'database': 'DEP',
-        'user': 'postgres',
-        'password': '',
-        'options': "-c search_path=dep"
-    }
-
+def insert_query(query, comp, id, text, url):
     try:
-        connection = psycopg2.connect(**connection_config_dict)
-        return connection
-
-    except (Exception, psycopg2.DatabaseError) as e:
-        print("Error while connecting to PostgreSQL", e)
-        exit()
-
-
-def insert_query(query, comp, url, text):
-        conn = connect_to_db()
+        print("connecting to db")
+        conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
         cur = conn.cursor()
-        cur.execute(query,(str(comp), str(url), str(text)))
+        print("doing query")
+        
+        cur.execute(query,(comp, url, text, id))
         conn.commit()
         cur.close()
         conn.close()
+    except (Exception) as error : 
+        print(f"postgres error : {error}")
 
-
-def get_ondernemingen(fiscaal_jaar):
-    conn = connect_to_db()
+def get_onderneming():
+    query = 'SELECT * FROM dep."Onderneming"'
+    conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
     cur = conn.cursor()
-    cur.callproc('getondernemingenscrapingcodingtreewebsite', (fiscaal_jaar, ))
+    cur.execute(query)
     result = cur.fetchall()
     cur.close()
     conn.close()
-
     return result
 
 
-def update_scrape_log(FiscaalJaar, OndernemingID):
-    conn = connect_to_db()
+ 
 
-    cursor = conn.cursor()
-    sql = """INSERT INTO "ScrapeLog" ("FiscaalJaar", "OndernemingID", "Website") VALUES (%s, %s, %s)"""
+    
+	                                                        
 
-    cursor.execute(sql, (FiscaalJaar, OndernemingID, "1"))
 
-    conn.commit()
-
-    cursor.close()
-    conn.close()
-
-def insert_website_text(fiscaal_jaar, onderneming_id, website_text):
-    conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
-
-    cursor = conn.cursor()
-
-    sql = """INSERT INTO "OndernemingWebsite" ("FiscaalJaar", "OndernemingID", "WebsiteText") VALUES (%s, %s, %s, %s, %s)"""
-
-    cursor.execute(sql, (fiscaal_jaar, onderneming_id, website_text))
-
-    conn.commit()
-
-    cursor.close()
-    conn.close()
