@@ -48,7 +48,7 @@ class WebSpider(scrapy.Spider):
     
         
     # include_patterns = ['']
-    exclude_patterns = ['.*\.(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)','.*(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)']
+    exclude_patterns = ['.*\.(css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)','.*(\/fr\/|product|winkel|Winkel|shop|Shop|css|js|gif|jpg|jpeg|png|Store|Contact|contact|Contacteer|Catalog|catalog|contacteer|search|Search|Zoek|zoek|catalogsearch)']
 
    
 

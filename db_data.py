@@ -17,17 +17,17 @@ def insert_query(query, comp, id, text, url):
         print(f"postgres error : {error}")
 
 def get_onderneming():
-    query = 'SELECT * FROM dep."Onderneming"'
+    query = 'SELECT * FROM dep."Onderneming" where ("ID" NOT IN (select id from dep."html_paginas") AND "WebAdres" IS NOT NULL)  '
     conn = psycopg2.connect(database='DEP', user='postgres', password='', host='vichogent.be', port='40045',options="-c search_path=dep" )
     cur = conn.cursor()
     cur.execute(query)
     result = cur.fetchall()
     cur.close()
     conn.close()
-    return result
+    return result[:4000]
 
 
- 
+print(len(get_onderneming()))
 
     
 	                                                        
